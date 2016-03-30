@@ -1,0 +1,50 @@
+#!/bin/sh
+
+# oggとかpngをcommitするときに
+# metaファイルつけ忘れてるとコミットできないようになってる
+# http://leko.jp/archives/751
+
+GIT_STATUS_NEW_FILE="/tmp/git_status_new_file.txt"
+
+git status | grep "new file" | awk '{print $3}' > $GIT_STATUS_NEW_FILE
+
+NOT_EXISTS_META_FILE_COUNT=0
+
+# metafile以外のnew fileをぐるぐる
+for FILE in `cat ${GIT_STATUS_NEW_FILE} | grep -e "png" -e "ogg" | grep -v "meta"` ; do
+    IS_ERROR=1
+
+    # metafile含むnew fileをぐるぐる
+    for INC in `cat ${GIT_STATUS_NEW_FILE} ` ; do
+        if [ "$FILE.meta" = $INC ] ; then
+            IS_ERROR=0
+        fi
+    done
+
+    # metaファイルの無いファイルを加算して、ファイル名を表示
+    if [ $IS_ERROR -eq 1 ] ; then
+        (( NOT_EXISTS_META_FILE_COUNT++ ))
+        echo $FILE
+    fi
+done
+
+if [ $NOT_EXISTS_META_FILE_COUNT -gt 0 ] ; then
+    echo "　　　　 ,、,,,、,,, "
+    echo "　　　 _,,;' '\" '' ;;,, "
+    echo "　　（rヽ,;''\"\"''゛゛;,ﾉｒ）　　　　 "
+    echo "　　 ,; i ___　、___iヽ゛;,　　metaファイルの無いファイルが${NOT_EXISTS_META_FILE_COUNT}個あるよ"
+    echo "　 ,;'''|ヽ・〉〈・ノ |ﾞ ';, "
+    echo "　 ,;''\"|　 　▼　　 |ﾞ゛';, "
+    echo "　 ,;''　ヽ ＿人＿  /　,;'_ "
+    echo " ／ｼ、    ヽ  ⌒⌒  /　 ﾘ　＼ "
+    echo "|　　 \"ｒ,,｀\"'''ﾞ´　　,,ﾐ| "
+    echo "|　　 　 ﾘ、　　　　,ﾘ　　 | "
+    echo "|　　i 　゛ｒ、ﾉ,,ｒ\" i _ | "
+    echo "|　　｀ー――-----------┴ ⌒´ ） "
+    echo "（ヽ  _____________ ,, ＿´） "
+    echo " （_⌒_______________ ,, ィ "
+    echo "     T                 |"
+    echo "     |                 |"
+    exit 1
+fi
+exit 0
